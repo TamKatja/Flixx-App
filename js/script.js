@@ -84,6 +84,88 @@ async function displayPopularShows() {
     });
 }
 
+// Display movie details
+async function displayMovieDetails() {
+    const movieId = window.location.search.split('=')[1];
+    const movie = await fetchAPIData(`movie/${movieId}`);
+
+    // Overlay for background image
+    displayBackgroundImage('movie', movie.backdrop_path);
+
+    const div = document.createElement('div');
+    div.innerHTML = `
+        <div class="details-top">
+            <div>${
+                movie.poster_path
+                    ? `<img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" class="card-img-top" alt="${movie.title}">`
+                    : `<img src="../images/no-image.jpg" class="card-img-top" alt="${movie.title}">`
+            }
+            </div>
+            <div>
+                <h2>${movie.title}</h2>
+                <p><i class="fas fa-star text-primary"></i> 
+                ${movie.vote_average.toFixed(1)} / 10</p>
+                <p class="text-muted">Release Date: ${movie.release_date}</p>
+                <p>${movie.overview}</p>
+                <h5>Genres</h5>
+                <ul class="list-group">
+                    ${movie.genres
+                        .map((genre) => `<li>${genre.name}</li>`)
+                        .join('')}
+                </ul>
+                <a href="${
+                    movie.homepage
+                }" target="_blank" class="btn">Visit Movie Homepage</a>
+            </div>
+        </div>
+        <div class="details-bottom">
+            <h2>Movie Info</h2>
+            <ul>
+                <li><span class="text-secondary">Budget: </span>
+                $${movie.budget.toLocaleString()}
+                </li>
+                <li><span class="text-secondary">Revenue: </span>
+                $${movie.revenue.toLocaleString()}
+                </li>
+                <li><span class="text-secondary">Runtime:</span>
+                ${movie.runtime} minutes
+                </li>
+                <li><span class="text-secondary">Status:</span>
+                ${movie.status}
+                </li>
+            </ul>
+            <h4>Production Companies</h4>
+            <div class="list-group">
+                ${movie.production_companies
+                    .map((company) => `<span>${company.name}</span>`)
+                    .join(', ')}
+                </div>
+        </div>`;
+    document.querySelector('#movie-details').appendChild(div);
+}
+
+// Display backdrop on details pages
+function displayBackgroundImage(type, backgroundPath) {
+    const divOverlay = document.createElement('div');
+    divOverlay.style.backgroundImage = `url(https://image.tmdb.org/t/p/original/${backgroundPath})`;
+    divOverlay.style.backgroundSize = 'cover';
+    divOverlay.style.backgroundPosition = 'center';
+    divOverlay.style.backgroundRepeat = 'no-repeat';
+    divOverlay.style.height = '100vh';
+    divOverlay.style.width = '100vw';
+    divOverlay.style.position = 'absolute';
+    divOverlay.style.top = '0';
+    divOverlay.style.left = '0';
+    divOverlay.style.zIndex = '-1';
+    divOverlay.style.opacity = '0.1';
+
+    if (type === 'movie') {
+        document.querySelector('#movie-details').appendChild(divOverlay);
+    } else if (type === 'show') {
+        document.querySelector('#show-details').appendChild(divOverlay);
+    }
+}
+
 // Fetch data from TMDB API
 async function fetchAPIData(endpoint) {
     const API_KEY = '58d8325e942989954ae55037aa14f785'; // Hide in production
@@ -124,7 +206,7 @@ function init() {
             displayPopularShows();
             break;
         case '/movie-details.html':
-            console.log('Movie details');
+            displayMovieDetails();
             break;
         case '/tv-details.html':
             console.log('TV details');
